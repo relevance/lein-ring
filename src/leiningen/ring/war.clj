@@ -9,8 +9,8 @@
   (:import [java.util.jar Manifest
                           JarEntry
                           JarOutputStream]
-           [java.io BufferedOutputStream 
-                    FileOutputStream 
+           [java.io BufferedOutputStream
+                    FileOutputStream
                     ByteArrayInputStream]))
 
 (defn default-war-name [project]
@@ -225,18 +225,33 @@
   (update-in project [:dependencies]
              conj ['ring/ring-servlet "1.1.0"]))
 
+(defn class-exists-in-project?
+  [class-name project]
+  (let [result (string/trim
+                (with-out-str
+                  (eval-in-project project
+                                   `(try
+                                      (resolve '~class-name)
+                                      (catch java.lang.ClassNotFoundException ~'_)))))]
+    (= (name class-name) result)))
+
 (defn war
   "Create a $PROJECT-$VERSION.war file."
   ([project]
      (war project (default-war-name project)))
   ([project war-name]
      (ensure-handler-set! project)
-     (let [project (add-servlet-dep project)
-           result  (compile/compile project)]
+     (let [project       (add-servlet-dep project)
+           result        (compile/compile project)
+           servlet-class (servlet-class project)]
        (when-not (and (number? result) (pos? result))
          (let [war-path (war-file-path project war-name)]
-           (compile-servlet project)
-           (if (has-listener? project)
+           (when-not (class-exists-in-project? servlet-class project)
+             (println "Couldn't find"
+                      servlet-class
+                      "on classpath. Generating from handler...")
+             (compile-servlet project))
+           (when (has-listener? project)
              (compile-listener project))
            (write-war project war-path)
            (println "Created" war-path)
