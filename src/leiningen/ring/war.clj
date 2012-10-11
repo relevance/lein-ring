@@ -246,7 +246,8 @@
            servlet-class (servlet-class project)]
        (when-not (and (number? result) (pos? result))
          (let [war-path (war-file-path project war-name)]
-           (when-not (class-exists-in-project? servlet-class project)
+           (when-not (class-exists-in-project? servlet-class
+                                               project)
              (println "Couldn't find"
                       servlet-class
                       "on classpath. Generating from handler...")

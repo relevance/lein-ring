@@ -46,11 +46,17 @@
      (uberwar project (default-uberwar-name project)))
   ([project war-name]
      (ensure-handler-set! project)
-     (let [project (war/add-servlet-dep project)
-           result  (compile/compile project)]
+     (let [project       (war/add-servlet-dep project)
+           result        (compile/compile project)
+           servlet-class (servlet-class project)]
        (when-not (and (number? result) (pos? result))
          (let [war-path (war/war-file-path project war-name)]
-           (war/compile-servlet project)
+           (when-not (war/class-exists-in-project? servlet-class
+                                                   project)
+             (println "Couldn't find"
+                      servlet-class
+                      "on classpath. Generating from handler...")
+             (war/compile-servlet project))
            (if (war/has-listener? project)
              (war/compile-listener project))
            (write-uberwar project war-path)
