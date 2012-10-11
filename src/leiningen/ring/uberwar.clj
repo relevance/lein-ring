@@ -48,7 +48,7 @@
      (ensure-handler-set! project)
      (let [project       (war/add-servlet-dep project)
            result        (compile/compile project)
-           servlet-class (servlet-class project)]
+           servlet-class (war/servlet-class project)]
        (when-not (and (number? result) (pos? result))
          (let [war-path (war/war-file-path project war-name)]
            (when-not (war/class-exists-in-project? servlet-class
