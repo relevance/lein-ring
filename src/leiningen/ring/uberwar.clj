@@ -57,7 +57,7 @@
                       servlet-class
                       "on classpath. Generating from handler...")
              (war/compile-servlet project))
-           (if (war/has-listener? project)
+           (when (war/has-listener? project)
              (war/compile-listener project))
            (write-uberwar project war-path)
            (println "Created" war-path)
